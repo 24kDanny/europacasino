@@ -23,36 +23,46 @@
         <button onclick="play()">Gira!</button>
     </div>
 
+    <div class="quick-bets">
+        <button onclick="setBet(10)">10</button>
+        <button onclick="setBet(50)">50</button>
+        <button onclick="setBet(100)">100</button>
+        <button onclick="setBet(500)">500</button>
+        <button onclick="setBet(1000)">1000</button>
+        <button onclick="setBet('max')">MAX</button>
+    </div>
+
     <div class="balance" id="balance">
         Saldo: €1000
     </div>
 
     <div id="message" class="message"></div>
 
-    <div id="reload-container" style="margin-top:20px; display:none;">
-        <button id="reload-button" onclick="reloadBalance()">Ricarica €500</button>
+    <div id="reload-container" style="margin-top:20px;">
+        <button id="reload-button" onclick="reloadBalance()" disabled>Ricarica €500</button>
         <div id="timer" style="margin-top:10px; font-size:16px;"></div>
     </div>
 </div>
 
 <script>
     let balance = 1000;
-    let canReload = true;
-    let reloadCooldown = 60; // 60 secondi
+    let canReload = false;
+    let reloadCooldown = 60; // secondi
+    let cooldownTimer = null;
     const symbols = ["🍒", "🍋", "🔔", "7️⃣", "⭐", "🍀"];
     const reelsElement = document.getElementById('reels');
     const balanceElement = document.getElementById('balance');
     const messageElement = document.getElementById('message');
-    const reloadContainer = document.getElementById('reload-container');
     const reloadButton = document.getElementById('reload-button');
     const timerElement = document.getElementById('timer');
 
     function getRandomSymbol() {
         const weightedSymbols = [
-            "🍒", "🍒", "🍋", "🍋",
-            "🔔", "🔔",
+            "🍒", "🍒", "🍒",
+            "🍋", "🍋",
+            "🔔",
             "7️⃣",
-            "⭐", "⭐",
+            "⭐",
             "🍀"
         ];
         return weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)];
@@ -74,7 +84,7 @@
         balanceElement.innerText = `Saldo: €${balance}`;
         messageElement.innerText = "";
 
-        // Animazione dei rulli
+        // Animazione rulli
         let spins = 10;
         let count = 0;
 
@@ -96,26 +106,30 @@
         reelsElement.innerText = `${reel1} ${reel2} ${reel3}`;
 
         if (reel1 === reel2 && reel2 === reel3) {
-            let win = bet * 10;
+            let win = bet * 8; // Vinci 8x
             balance += win;
             messageElement.innerText = `JACKPOT! Hai vinto €${win}!`;
         } else if (reel1 === reel2 || reel2 === reel3 || reel1 === reel3) {
-            let win = bet * 2;
-            balance += win;
-            messageElement.innerText = `Hai vinto €${win}!`;
+            let win = bet * 1.5; // Vinci 1.5x
+            balance += Math.floor(win);
+            messageElement.innerText = `Hai vinto €${Math.floor(win)}!`;
         } else {
             messageElement.innerText = "Peccato! Nessuna vincita.";
         }
 
         balanceElement.innerText = `Saldo: €${balance}`;
 
-        if (balance === 0 && canReload) {
-            showReloadButton();
-        }
+        // Controlla se si può ricaricare
+        checkReloadAvailability();
     }
 
-    function showReloadButton() {
-        reloadContainer.style.display = "block";
+    function setBet(amount) {
+        const betInput = document.getElementById('bet');
+        if (amount === 'max') {
+            betInput.value = balance;
+        } else {
+            betInput.value = amount;
+        }
     }
 
     function reloadBalance() {
@@ -123,26 +137,46 @@
 
         balance += 500;
         balanceElement.innerText = `Saldo: €${balance}`;
-        reloadContainer.style.display = "none";
         messageElement.innerText = "Hai ricaricato €500!";
 
         canReload = false;
+        reloadButton.disabled = true;
+        reloadButton.style.backgroundColor = 'grey';
+        startCooldownTimer();
+    }
 
-        // Parte il timer di 1 minuto
+    function checkReloadAvailability() {
+        if (balance <= 0 && !cooldownTimer) {
+            canReload = true;
+            reloadButton.disabled = false;
+            reloadButton.style.backgroundColor = 'gold';
+        }
+    }
+
+    function startCooldownTimer() {
         let countdown = reloadCooldown;
         timerElement.innerText = `Devi aspettare ${countdown} secondi per ricaricare di nuovo.`;
 
-        let timer = setInterval(() => {
+        cooldownTimer = setInterval(() => {
             countdown--;
             if (countdown <= 0) {
-                clearInterval(timer);
+                clearInterval(cooldownTimer);
+                cooldownTimer = null;
                 canReload = true;
                 timerElement.innerText = "";
+                if (balance <= 0) {
+                    reloadButton.disabled = false;
+                    reloadButton.style.backgroundColor = 'gold';
+                }
             } else {
                 timerElement.innerText = `Devi aspettare ${countdown} secondi per ricaricare di nuovo.`;
             }
         }, 1000);
     }
+
+    // All'inizio disabilita il tasto
+    reloadButton.disabled = true;
+    reloadButton.style.backgroundColor = 'grey';
 </script>
 
 </body>
