@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine - Casino Royale</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>Casino Royale - Slot Machine</h1>
+</header>
+
+<div class="slot-machine">
+    <div class="reels" id="reels">
+        🎰 🎰 🎰
+    </div>
+
+    <div class="controls">
+        <label for="bet">Puntata (€): </label>
+        <input type="number" id="bet" value="10" min="10" step="10">
+        <button onclick="play()">Gira!</button>
+    </div>
+
+    <div class="balance" id="balance">
+        Saldo: €1000
+    </div>
+
+    <div id="message" class="message"></div>
+</div>
+
+<script>
+    let balance = 1000;
+    const symbols = ["🍒", "🍋", "🔔", "7️⃣", "⭐", "🍀"];
+    const reelsElement = document.getElementById('reels');
+    const balanceElement = document.getElementById('balance');
+    const messageElement = document.getElementById('message');
+
+    function getRandomSymbol() {
+        // Rendi certi simboli più rari
+        const weightedSymbols = [
+            "🍒", "🍒", "🍋", "🍋",
+            "🔔", "🔔",
+            "7️⃣", 
+            "⭐", "⭐",
+            "🍀"
+        ];
+        return weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)];
+    }
+
+    function play() {
+        let bet = parseInt(document.getElementById('bet').value);
+
+        if (isNaN(bet) || bet < 10) {
+            messageElement.innerText = "La puntata minima è 10€!";
+            return;
+        }
+        if (bet > balance) {
+            messageElement.innerText = "Non puoi puntare più del tuo saldo!";
+            return;
+        }
+
+        balance -= bet;
+        balanceElement.innerText = `Saldo: €${balance}`;
+        messageElement.innerText = "";
+
+        // Animazione dei rulli
+        let spins = 10; // Numero di spin visivi
+        let count = 0;
+
+        let interval = setInterval(() => {
+            reelsElement.innerText = `${getRandomSymbol()} ${getRandomSymbol()} ${getRandomSymbol()}`;
+            count++;
+            if (count >= spins) {
+                clearInterval(interval);
+                finalSpin(bet);
+            }
+        }, 100);
+    }
+
+    function finalSpin(bet) {
+        let reel1 = getRandomSymbol();
+        let reel2 = getRandomSymbol();
+        let reel3 = getRandomSymbol();
+
+        reelsElement.innerText = `${reel1} ${reel2} ${reel3}`;
+
+        // Controlla il risultato
+        if (reel1 === reel2 && reel2 === reel3) {
+            let win = bet * 10;
+            balance += win;
+            messageElement.innerText = `JACKPOT! Hai vinto €${win}!`;
+        } else if (reel1 === reel2 || reel2 === reel3 || reel1 === reel3) {
+            let win = bet * 2;
+            balance += win;
+            messageElement.innerText = `Hai vinto €${win}!`;
+        } else {
+            messageElement.innerText = "Peccato! Nessuna vincita.";
+        }
+
+        balanceElement.innerText = `Saldo: €${balance}`;
+    }
+</script>
+
+</body>
+</html>
