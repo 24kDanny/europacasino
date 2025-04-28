@@ -28,21 +28,30 @@
     </div>
 
     <div id="message" class="message"></div>
+
+    <div id="reload-container" style="margin-top:20px; display:none;">
+        <button id="reload-button" onclick="reloadBalance()">Ricarica €500</button>
+        <div id="timer" style="margin-top:10px; font-size:16px;"></div>
+    </div>
 </div>
 
 <script>
     let balance = 1000;
+    let canReload = true;
+    let reloadCooldown = 60; // 60 secondi
     const symbols = ["🍒", "🍋", "🔔", "7️⃣", "⭐", "🍀"];
     const reelsElement = document.getElementById('reels');
     const balanceElement = document.getElementById('balance');
     const messageElement = document.getElementById('message');
+    const reloadContainer = document.getElementById('reload-container');
+    const reloadButton = document.getElementById('reload-button');
+    const timerElement = document.getElementById('timer');
 
     function getRandomSymbol() {
-        // Rendi certi simboli più rari
         const weightedSymbols = [
             "🍒", "🍒", "🍋", "🍋",
             "🔔", "🔔",
-            "7️⃣", 
+            "7️⃣",
             "⭐", "⭐",
             "🍀"
         ];
@@ -66,7 +75,7 @@
         messageElement.innerText = "";
 
         // Animazione dei rulli
-        let spins = 10; // Numero di spin visivi
+        let spins = 10;
         let count = 0;
 
         let interval = setInterval(() => {
@@ -86,7 +95,6 @@
 
         reelsElement.innerText = `${reel1} ${reel2} ${reel3}`;
 
-        // Controlla il risultato
         if (reel1 === reel2 && reel2 === reel3) {
             let win = bet * 10;
             balance += win;
@@ -100,6 +108,40 @@
         }
 
         balanceElement.innerText = `Saldo: €${balance}`;
+
+        if (balance === 0 && canReload) {
+            showReloadButton();
+        }
+    }
+
+    function showReloadButton() {
+        reloadContainer.style.display = "block";
+    }
+
+    function reloadBalance() {
+        if (!canReload) return;
+
+        balance += 500;
+        balanceElement.innerText = `Saldo: €${balance}`;
+        reloadContainer.style.display = "none";
+        messageElement.innerText = "Hai ricaricato €500!";
+
+        canReload = false;
+
+        // Parte il timer di 1 minuto
+        let countdown = reloadCooldown;
+        timerElement.innerText = `Devi aspettare ${countdown} secondi per ricaricare di nuovo.`;
+
+        let timer = setInterval(() => {
+            countdown--;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                canReload = true;
+                timerElement.innerText = "";
+            } else {
+                timerElement.innerText = `Devi aspettare ${countdown} secondi per ricaricare di nuovo.`;
+            }
+        }, 1000);
     }
 </script>
 
